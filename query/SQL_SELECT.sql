@@ -10,7 +10,7 @@ WHERE duration > 210;
 
 SELECT title 
 FROM public.collection 
-WHERE year >= 2018 AND year <=2020;
+WHERE year BETWEEN 2018 AND 2020;
 
 SELECT name 
 FROM public.artist 
@@ -18,41 +18,34 @@ WHERE name NOT LIKE '_% %_';
 
 SELECT name 
 FROM public.song 
-WHERE name LIKE '%my%';
+WHERE name iLIKE '%my%';
 
 
 --Task 3--
 
-SELECT title, artist_count  
-FROM public.genre g
-LEFT JOIN (
-SELECT genre_id, COUNT(artist_id) as artist_count
-FROM public.catalog_artist
-GROUP BY genre_id) a 
-ON a.genre_id = g.id;
+SELECT title, COUNT(artist_id) artist_count FROM catalog_artist ca
+--left join artist a on a.id = ca.artist_id 
+LEFT JOIN genre g ON g.id = ca.genre_id 
+GROUP BY title;
 
-SELECT title, song_count  
-FROM public.album g
-LEFT JOIN (
-SELECT album_id, COUNT(id) as song_count
-FROM public.song
-GROUP BY album_id) a 
-ON a.album_id = g.id
-WHERE g.year >= 2019 and g.year <= 2020;
+SELECT title, COUNT(s.id) as song_count FROM song s
+LEFT JOIN album a ON a.id = s.album_id 
+WHERE a.year BETWEEN 2019 and 2020
+GROUP BY title
 
-SELECT title, avg_duration  
-FROM public.album g
-LEFT JOIN (
-SELECT album_id, AVG(duration) as avg_duration, COUNT(id) as song_count
-FROM public.song
-GROUP BY album_id) a 
-ON a.album_id = g.id;
+SELECT title, AVG(duration) as avg_duration FROM song s
+LEFT JOIN album a ON a.id = s.album_id 
+GROUP BY title
 
-SELECT a.year, a2.name
-FROM public.album a 
-LEFT JOIN public.catalog_album ca on ca.album_id = a.id 
-LEFT JOIN public.artist a2 on a2.id = ca.artist_id 
-WHERE a.year <> 2020;
+SELECT n.name
+FROM artist n
+LEFT JOIN (
+SELECT distinct artist_id, year from song s 
+LEFT JOIN album a ON a.id = s.album_id  
+LEFT JOIN catalog_album ca ON ca.album_id = a.id 
+WHERE year = 2020) q 
+ON q.artist_id = n.id
+WHERE q.artist_id IS NULL;
 
 SELECT DISTINCT a.name, c.title 
 FROM public.artist a 
